@@ -18,7 +18,7 @@ const addDoctor = async (req, res) => {
     }
 
     // Validating email format
-    if (validator.isEmail(email)) {
+    if (!validator.isEmail(email)) {
       return res.json({ success: false, message: "Please enter a valid email" })
     }
 
@@ -27,19 +27,39 @@ const addDoctor = async (req, res) => {
       return res.json({ success: false, message: "Please enter a strong password" })
     }
 
+    // Check Image
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload a doctor image"
+      })
+    }
+
     // hashing doctor password
     const salt = await bcrypt.genSalt(10)
-    const hasedPassword = await bcrypt.hash(password, salt)
+    const hashedPassword = await bcrypt.hash(password, salt)
 
     // upload image from cloudinary
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
     const imageUrl = imageUpload.secure_url
 
+    let parsedAddress
+
+    try {
+      parsedAddress = JSON.parse(address)
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: "Address must be valid JSON"
+      })
+    }
+
+
     const doctorData = {
       name,
       email,
       image: imageUrl,
-      password: hasedPassword,
+      password: hashedPassword,
       speciality,
       degree,
       experience,
@@ -81,3 +101,4 @@ const loginAdmin = async (req, res) => {
 }
 
 export { addDoctor, loginAdmin }
+
