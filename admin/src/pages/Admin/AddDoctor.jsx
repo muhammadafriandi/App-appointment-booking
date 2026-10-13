@@ -55,12 +55,20 @@ const AddDoctor = () => {
 
       if (data.success) {
         toast.success(data.message)
+        setDocImg(false)
+        setName('')
+        setPassword('')
+        setEmail('')
+        setAddress1('')
+        setAddress2('')
+        setDegree('')
+        setAbout('')
+        setFees('')
       } else {
         toast.error(data.error)
       }
 
     } catch (error) {
-
 
       toast.error(
         error.response?.data?.message ||
@@ -69,8 +77,9 @@ const AddDoctor = () => {
       )
 
     }
+    // console.log('token:', aToken)
   }
-  console.log('token:', aToken)
+  // console.log('token:', aToken)
   return (
     <form onSubmit={onSubmitHandler} className='min-5 w-full'>
       <p className='mb-3 text-lg font-medium'>Add Doctor</p>
@@ -83,7 +92,7 @@ const AddDoctor = () => {
               src={docImg ? URL.createObjectURL(docImg) : assets.upload_area}
             />
           </label>
-          <input onChange={(e) => setDocImg(e.target.files[0])} type="file" id='doc-img' hidden />
+          <input onChange={(e) => setDocImg(e.target.files[0] || false)} type="file" id='doc-img' accept="image/**" hidden />
           <p>Upload doctor <br /> Picture</p>
         </div>
 
@@ -120,7 +129,7 @@ const AddDoctor = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder='Email'
+                placeholder='Password'
                 className='border rounded px-3 py-2'
                 required
               />
