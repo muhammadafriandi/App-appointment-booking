@@ -1,28 +1,62 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { assets } from "../assets/assets"
-
+import { AppContext } from '../context/AppContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const MyProfile = () => {
 
-  const [userData, setUserData] = useState({
-    name: "Afriandi",
-    image: assets.profile_pic,
-    email: "afriandi@email.com",
-    phone: "+62 8XX 8888 XXXX",
-    address: {
-      line1: "cross jack, wick",
-      line2: "Cricle Off Road"
-    },
-    gender: "Male",
-    dob: "1995-5-5",
-  })
+  const { userData, setUserData, token, backendUrl, loadUserProfileData } = useContext(AppContext)
 
   const [isEdit, setIsEdit] = useState(false)
+  const [image, setImage] = useState(false)
 
-  return (
+  const updateProfileData = async () => {
+
+    try {
+
+      const formData = new FormData()
+      formData.append('name', userData.name)
+      formData.append('phone', userData.phone)
+      formData.append('address', JSON.stringify(userData.address))
+      formData.append('gender', userData.gender)
+      formData.append('dob', userData.dob)
+
+      image && formData.append('image', image)
+
+      const { data } = await axios.post(backendUrl + '/api/user/update-profile', formData, { headers: { token } })
+
+      if (data.success) {
+        toast.success(data.message)
+        await loadUserProfileData()
+        setIsEdit(false)
+        setImage(false)
+      } else {
+        toast.error(data.message)
+      }
+
+    } catch (error) {
+      console.log(error)
+      toast.error(error.message)
+    }
+
+  }
+
+
+  return userData && (
     <div className='max-w-lg flex flex-col gap-2 text-sm'>
 
-      <img className='w-36 rounded' src={userData.image} alt="" />
+      {isEdit ?
+        <label htmlFor='image'>
+          <div className='inline-block relative cursor-pointer'>
+            <img className='w-36 rounded opacity-75' src={image ? URL.createObjectURL(image) : userData.image} alt="" />
+            <img className='w-10 absolute bottom-12 right-12' src={image ? '' : assets.upload_icon} alt="" />
+          </div>
+          <input onChange={(e) => setImage(e.target.files[0])} type="file" id='image' hidden />
+        </label> :
+        <img className='w-36 rounded' src={userData.image} alt="" />
+      }
+
 
       {isEdit ?
         <input
@@ -61,14 +95,14 @@ const MyProfile = () => {
                 type="text"
                 value={userData.address.line1}
                 onChange={(e) => setUserData(prev => ({ ...prev, address: { ...prev.address, line1: e.target.value } }))}
-                className='bg-gray-50'
+                className='bg-gray-100 max-w-52'
               />
               <br />
               <input
                 type="text"
                 value={userData.address.line2}
                 onChange={(e) => setUserData(prev => ({ ...prev, address: { ...prev.address, line2: e.target.value } }))}
-                className='bg-gray-50'
+                className='bg-gray-100 max-w-52 mt-2'
               />
             </p> :
             <p className='text-gray-500'>
@@ -89,7 +123,7 @@ const MyProfile = () => {
             <select
               value={userData.gender}
               onChange={(e) => setUserData(prev => ({ ...prev, gender: e.target.value }))}
-              className='max-w-20 bg-gray-100'
+              className='max-w-52 bg-gray-100'
             >
               <option value="Male">Male</option>
               <option value="Female">Female</option>
@@ -103,7 +137,7 @@ const MyProfile = () => {
               type='date'
               value={userData.dob}
               onChange={(e) => setUserData(prev => ({ ...prev, dob: e.target.value }))}
-              className='max-w-20 bg-gray-100'
+              className='max-w-52 bg-gray-100'
             /> :
             <p className='text-gray-400'>{userData.dob}</p>
           }
@@ -113,7 +147,7 @@ const MyProfile = () => {
       <div className='mt-10'>
         {isEdit ?
           <button
-            onClick={() => setIsEdit(false)}
+            onClick={updateProfileData}
             className='border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all'
           >
             Save Information
