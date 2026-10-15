@@ -61,7 +61,7 @@ const Login = () => {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.name)}
+              onChange={(e) => setName(e.target.value)}
               required
               className='border border-zinc-300 rounded w-full p-2 mt-1'
             />
